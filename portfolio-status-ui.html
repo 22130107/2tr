@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trạng thái danh mục</title>
+  <style>
+    :root {
+      --bg: #242525;
+      --panel: #0e0e0e;
+      --top: #8d210b;
+      --tab: #3f3f3f;
+      --active: #0858d5;
+      --header: #464646;
+      --row-a: #111111;
+      --row-b: #252525;
+      --grid: #505050;
+      --text: #ffffff;
+      --red: #ff383c;
+      --green: #00de68;
+      --button: #0342c9;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Roboto, Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0;
+      overflow: hidden;
+    }
+
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: 29px 24px 36px 52px 1fr 45px;
+      background: var(--bg);
+    }
+
+    .account-bar {
+      display: grid;
+      grid-template-columns: auto 90px auto 200px auto 82px auto 160px 1fr;
+      align-items: center;
+      gap: 10px;
+      padding: 3px 7px;
+      background: var(--top);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .label {
+      font-size: 11px;
+      font-weight: 400;
+      color: #fff;
+    }
+
+    .field {
+      height: 22px;
+      display: flex;
+      align-items: center;
+      padding: 0 7px;
+      background: #151515;
+      border: 1px solid #888;
+      font-size: 12px;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 96px 177px 177px 185px 164px 150px 188px 1fr;
+      background: var(--tab);
+      overflow: hidden;
+    }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 22px;
+      padding: 0 10px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .tab.active {
+      background: var(--active);
+    }
+
+    .title-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      background: var(--panel);
+      border-bottom: 1px solid #565656;
+      color: #e9e9e9;
+      font-size: 14px;
+    }
+
+    .sliders {
+      width: 20px;
+      height: 20px;
+      position: relative;
+    }
+
+    .sliders::before,
+    .sliders::after,
+    .sliders span {
+      content: "";
+      position: absolute;
+      left: 2px;
+      right: 2px;
+      height: 1px;
+      background: #f5f5f5;
+    }
+
+    .sliders::before { top: 5px; }
+    .sliders span { top: 10px; }
+    .sliders::after { top: 15px; }
+
+    .knob {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #0d0d0d;
+      border: 1px solid #fff;
+      top: 3px;
+      left: 10px;
+      z-index: 1;
+    }
+
+    .knob.two {
+      top: 8px;
+      left: 4px;
+    }
+
+    .knob.three {
+      top: 13px;
+      left: 13px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 200px 214px 200px 190px 135px 190px 1fr;
+      align-items: center;
+      padding: 0 7px;
+      background: var(--panel);
+      border-bottom: 1px solid #323232;
+      white-space: nowrap;
+    }
+
+    .summary-item {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      color: #fff;
+      font-size: 13px;
+    }
+
+    .summary-item strong {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .red { color: var(--red); }
+    .green { color: var(--green); }
+
+    .table-shell {
+      min-height: 0;
+      overflow: auto;
+      scrollbar-color: #aaa #3b3b3b;
+      scrollbar-width: auto;
+      border-bottom: 1px solid #363636;
+    }
+
+    .table-shell::-webkit-scrollbar {
+      height: 15px;
+      width: 15px;
+    }
+
+    .table-shell::-webkit-scrollbar-track {
+      background: #3b3b3b;
+    }
+
+    .table-shell::-webkit-scrollbar-thumb {
+      background: #aaa;
+      border-radius: 8px;
+      border: 3px solid #3b3b3b;
+    }
+
+    table {
+      border-collapse: collapse;
+      table-layout: fixed;
+      width: 2050px;
+      font-weight: 400;
+      color: #fff;
+    }
+
+    thead th {
+      height: 24px;
+      padding: 0 7px;
+      background: var(--header);
+      border-right: 1px solid var(--grid);
+      border-bottom: 1px solid #696969;
+      color: #f8f8f8;
+      font-size: 13px;
+      font-weight: 400;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    tbody td {
+      height: 25px;
+      padding: 0 7px;
+      border-right: 1px solid var(--grid);
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-variant-numeric: tabular-nums;
+      font-weight: 400;
+    }
+
+    tbody tr:nth-child(odd) td {
+      background: var(--row-a);
+    }
+
+    tbody tr:nth-child(even) td {
+      background: var(--row-b);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 1px solid var(--grid);
+    }
+
+    .num {
+      text-align: right;
+    }
+
+    .code {
+      color: var(--red);
+      font-weight: 400;
+    }
+
+    .footer {
+      display: grid;
+      grid-template-columns: 88px 28px 28px 28px auto 120px 70px 1fr;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 7px;
+      background: #444;
+      color: #fff;
+      border-top: 1px solid #565656;
+      white-space: nowrap;
+    }
+
+    button {
+      height: 24px;
+      border: 1px solid #1264ce;
+      background: linear-gradient(#126bd8, var(--button));
+      color: #fff;
+      font-size: 12px;
+      font-weight: 400;
+      cursor: default;
+    }
+
+    .arrow {
+      display: grid;
+      place-items: center;
+      color: #bdbdbd;
+      font-size: 25px;
+      line-height: 1;
+      font-weight: 600;
+    }
+
+    .page {
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .stock-input {
+      height: 24px;
+      width: 120px;
+      background: #fff;
+      color: #111;
+      border: 1px solid #b7b7b7;
+      padding: 0 6px;
+    }
+
+    .w-code { width: 118px; }
+    .w-type { width: 70px; }
+    .w-total { width: 100px; }
+    .w-sellable { width: 120px; }
+    .w-right { width: 100px; }
+    .w-avg { width: 80px; }
+    .w-value { width: 150px; }
+    .w-market { width: 95px; }
+    .w-market-value { width: 150px; }
+    .w-weight { width: 70px; }
+    .w-profit { width: 150px; }
+    .w-percent { width: 100px; }
+    .w-avg-day { width: 90px; }
+    .w-tn-value { width: 150px; }
+    .w-room { width: 100px; }
+    .w-block { width: 100px; }
+    .w-qty { width: 70px; }
+
+    @media (max-width: 900px) {
+      .account-bar {
+        grid-template-columns: auto 90px auto minmax(120px, 1fr);
+      }
+
+      .account-bar .label:nth-of-type(n+3),
+      .account-bar .field:nth-of-type(n+3) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="account-bar">
+      <span class="label">Account:</span>
+      <span class="field" data-key="account">AT39791</span>
+      <span class="label">Acc Name:</span>
+      <span class="field" data-key="accName">NGÔ TRÂM ANH</span>
+      <span class="label">MKT ID:</span>
+      <span class="field" data-key="mktId">Z811</span>
+      <span class="label">MKT Name:</span>
+      <span class="field" style="width: 170px" data-key="mktName">Cao Trí Thành</span>
+      <span></span>
+    </section>
+
+    <nav class="tabs">
+      <div class="tab">1. Sổ lệnh</div>
+      <a class="tab active" href="portfolio-status-ui.html">2. Trạng thái danh mục</a>
+      <div class="tab">3. Trạng thái tài khoản</div>
+      <div class="tab">4. Thông tin khách hàng</div>
+      <div class="tab">6. Thông tin quyền</div>
+      <div class="tab">7. Thông tin DVTC</div>
+      <a class="tab" href="profit-loss-ui.html">9. Lãi lỗ đã thực hiện</a>
+      <div></div>
+    </nav>
+
+    <section class="title-bar">
+      <span>Trạng thái danh mục cơ sở</span>
+      <span class="sliders" aria-hidden="true"><i class="knob"></i><i class="knob two"></i><i class="knob three"></i><span></span></span>
+    </section>
+
+    <section class="summary">
+      <div class="summary-item">Giá trị <strong>359,429,400</strong></div>
+      <div class="summary-item">Giá trị TT <strong>296,940,000</strong></div>
+      <div class="summary-item">Lãi Lỗ <strong class="red">-62,489,400</strong></div>
+      <div class="summary-item">% Lãi Lỗ <strong class="red">-17.39%</strong></div>
+      <div class="summary-item">Lãi Lỗ TN</div>
+      <div class="summary-item">% Lãi Lỗ TN <strong class="green">0.00%</strong></div>
+      <span></span>
+    </section>
+
+    <section class="table-shell">
+      <table>
+        <colgroup>
+          <col class="w-code">
+          <col class="w-type">
+          <col class="w-total">
+          <col class="w-sellable">
+          <col class="w-right">
+          <col class="w-avg">
+          <col class="w-value">
+          <col class="w-market">
+          <col class="w-market-value">
+          <col class="w-weight">
+          <col class="w-profit">
+          <col class="w-percent">
+          <col class="w-avg-day">
+          <col class="w-tn-value">
+          <col class="w-percent">
+          <col class="w-room">
+          <col class="w-block">
+          <col class="w-block">
+          <col class="w-qty">
+          <col class="w-qty">
+          <col class="w-qty">
+          <col class="w-qty">
+          <col class="w-qty">
+          <col class="w-qty">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Mã CK</th>
+            <th>Loại CK</th>
+            <th class="num">Tổng</th>
+            <th class="num">KL có thể bán</th>
+            <th class="num">Quyền</th>
+            <th class="num">Giá TB</th>
+            <th class="num">Giá Trị</th>
+            <th class="num">Giá TT</th>
+            <th class="num">Giá Trị TT</th>
+            <th class="num">Tỷ trọng...</th>
+            <th class="num">Lãi Lỗ</th>
+            <th class="num">%</th>
+            <th class="num">Giá TBTN</th>
+            <th class="num">Giá Trị TBTN</th>
+            <th class="num">% Lãi Lỗ TN</th>
+            <th>CK ngoài room</th>
+            <th>CP có tức thu...</th>
+            <th>Không KD</th>
+            <th class="num">T2 Mua</th>
+            <th class="num">T2 Bán</th>
+            <th class="num">T1 Mua</th>
+            <th class="num">T1 Bán</th>
+            <th class="num">T0 Mua</th>
+            <th class="num">T0 Bán</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="code">BSR</td>
+            <td>02</td>
+            <td class="num">6,000</td>
+            <td class="num">6,000</td>
+            <td class="num">0</td>
+            <td class="num">27.661</td>
+            <td class="num red">165,966,000</td>
+            <td class="num">25.35</td>
+            <td class="num">152,100,000</td>
+            <td class="num">51.22%</td>
+            <td class="num red">-13,866,000</td>
+            <td class="num">-8.35%</td>
+            <td class="num">25.350</td>
+            <td class="num">152,100,000</td>
+            <td class="num">0.00%</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num"></td>
+          </tr>
+          <tr>
+            <td class="code">CII</td>
+            <td>02</td>
+            <td class="num">6,000</td>
+            <td class="num">6,000</td>
+            <td class="num">0</td>
+            <td class="num">18.428</td>
+            <td class="num red">110,568,000</td>
+            <td class="num">13.10</td>
+            <td class="num">78,600,000</td>
+            <td class="num">26.47%</td>
+            <td class="num red">-31,968,000</td>
+            <td class="num">-28.91%</td>
+            <td class="num">13.100</td>
+            <td class="num">78,600,000</td>
+            <td class="num">0.00%</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num"></td>
+          </tr>
+          <tr>
+            <td class="code">MSR</td>
+            <td>02</td>
+            <td class="num">1,800</td>
+            <td class="num">1,800</td>
+            <td class="num">0</td>
+            <td class="num">46.053</td>
+            <td class="num red">82,895,400</td>
+            <td class="num">36.80</td>
+            <td class="num">66,240,000</td>
+            <td class="num">22.31%</td>
+            <td class="num red">-16,655,400</td>
+            <td class="num">-20.09%</td>
+            <td class="num">36.800</td>
+            <td class="num">66,240,000</td>
+            <td class="num">0.00%</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num">5,200</td>
+            <td class="num"></td>
+            <td class="num"></td>
+          </tr>
+          <tr>
+            <td class="code">DPM</td>
+            <td>02</td>
+            <td class="num">0</td>
+            <td class="num">0</td>
+            <td class="num">0</td>
+            <td class="num">29.544</td>
+            <td class="num"></td>
+            <td class="num">22.05</td>
+            <td class="num"></td>
+            <td class="num">0.0%</td>
+            <td class="num"></td>
+            <td class="num">0.00%</td>
+            <td class="num">22.050</td>
+            <td class="num"></td>
+            <td class="num">0.00%</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num"></td>
+            <td class="num">3,000</td>
+            <td class="num"></td>
+            <td class="num"></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="footer">
+      <button>Reload</button>
+      <span class="arrow">&#8249;</span>
+      <span class="page">1</span>
+      <span class="arrow">&#8250;</span>
+      <span>Mã CK</span>
+      <input class="stock-input" aria-label="Mã CK">
+      <button>Tìm kiếm</button>
+      <span></span>
+    </footer>
+  </main>
+  <script>
+    (function () {
+      var KEY = 'accountInfo';
+      var fields = Array.prototype.slice.call(document.querySelectorAll('.account-bar span.field'));
+
+      try {
+        var data = JSON.parse(localStorage.getItem(KEY) || '{}');
+        fields.forEach(function (field) {
+          var v = data[field.dataset.key];
+          if (v !== undefined) field.textContent = v;
+        });
+      } catch (e) {}
+    })();
+  </script>
+</body>
+</html>

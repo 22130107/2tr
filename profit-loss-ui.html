@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lai lo da thuc hien</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root {
+      --app-bg: #242525;
+      --bar-brown: #87260f;
+      --top: #8d210b;
+      --tab: #3f3f3f;
+      --tab-bg: #424242;
+      --tab-active: #0342c9;
+      --tab-active-border: #ed2024;
+      --grid: #464646;
+      --grid-soft: #383838;
+      --text: #f2f2f2;
+      --muted: #d7d7d7;
+      --input: #151515;
+      --button: #0755b7;
+      --red: #ff3438;
+      --green: #12c865;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--app-bg);
+      color: var(--text);
+      font-family: Roboto, Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .terminal {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      background: var(--app-bg);
+    }
+
+    .account-bar {
+      display: grid;
+      grid-template-columns: auto 90px auto 200px auto 82px auto 160px 1fr;
+      align-items: center;
+      gap: 10px;
+      height: 29px;
+      padding: 3px 7px;
+      background: var(--top);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .label {
+      font-size: 11px;
+      font-weight: 400;
+      color: #fff;
+    }
+
+    .field {
+      height: 22px;
+      display: flex;
+      align-items: center;
+      padding: 0 7px;
+      background: #151515;
+      border: 1px solid #888;
+      font-size: 12px;
+      font-weight: 500;
+      color: #fff;
+      font-family: inherit;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    input.field {
+      display: block;
+      font-family: Roboto, Arial, sans-serif;
+      line-height: 20px;
+    }
+
+    input.field:focus {
+      outline: 1px solid #666;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 96px 177px 177px 185px 164px 150px 188px 1fr;
+      background: var(--tab);
+      overflow: hidden;
+    }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 22px;
+      padding: 0 10px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .tab.active {
+      background: var(--tab-active);
+    }
+
+    .content {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    table {
+      border-collapse: collapse;
+      table-layout: fixed;
+      width: 1122px;
+      color: var(--text);
+      font-weight: 400;
+      border-left: 2px solid #000;
+      border-right: 2px solid #000;
+    }
+
+    thead th {
+      height: 28px;
+      background: var(--tab-bg);
+      color: #fff;
+      border-right: 1px solid var(--grid);
+      border-bottom: 1px solid #595959;
+      text-align: left;
+      padding: 0 8px;
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    thead th.num {
+      text-align: right;
+    }
+
+    tbody td {
+      height: 27px;
+      padding: 0 8px;
+      border-right: 1px solid var(--grid);
+      color: #f8f8f8;
+      font-weight: 400;
+      font-size: 13px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    tbody tr:first-child td {
+      padding-top: 5px;
+    }
+
+    tbody tr.total td {
+      height: 30px;
+      color: #fff;
+      font-weight: 100;
+    }
+
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .symbol {
+      text-align: left;
+    }
+
+    .loss {
+      color: var(--red);
+    }
+
+    .profit {
+      color: var(--green);
+    }
+
+    .blank-area {
+      flex: 1;
+      min-height: 0;
+      border-top: 1px solid #303030;
+    }
+
+    .footer {
+      height: 42px;
+      display: grid;
+      grid-template-columns: auto 88px 34px 30px 34px auto 130px auto 140px auto 140px 94px 100px 94px 1fr;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 8px;
+      background: #424242;
+      border-top: 1px solid #555;
+      color: #fff;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+
+    .note {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    button {
+      height: 22px;
+      padding: 0 14px;
+      border: 1px solid #0342c9;
+      background: linear-gradient(#0342c9, #0342c9);
+      color: #fff;
+      font-weight: 400;
+      cursor: default;
+    }
+
+    .arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #cfcfcf;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .small-input,
+    .date-input {
+      height: 22px;
+      border: 1px solid #8d8d8d;
+      background: var(--input);
+      color: #fff;
+      padding: 0 8px;
+      font-weight: 400;
+      font-size: 13px;
+      min-width: 0;
+    }
+
+    .date-input {
+      background: #fff;
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    input.date-input {
+      display: block;
+      text-align: center;
+      cursor: text;
+      font-family: Roboto, Arial, sans-serif;
+      min-width: 0;
+    }
+
+    .date-field {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .date-field input.date-input {
+      flex: 1;
+      min-width: 0;
+      padding-right: 24px;
+    }
+
+    .date-field .calendar {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: auto;
+      height: auto;
+      padding: 2px;
+      display: grid;
+      place-items: center;
+      color: #111;
+      border: 0;
+      background: transparent;
+      font-size: 13px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .date-picker {
+      position: absolute;
+      width: 0;
+      height: 0;
+      opacity: 0;
+      border: 0;
+      padding: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .calendar {
+      width: 15px;
+      height: 15px;
+      display: inline-grid;
+      place-items: center;
+      color: #111;
+      border: 1px solid #444;
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    .page-no {
+      text-align: center;
+      color: #fff;
+      font-weight: 400;
+    }
+
+    .w-date { width: 183px; }
+    .w-code { width: 99px; }
+    .w-sellqty { width: 96px; }
+    .w-price { width: 118px; }
+    .w-fee { width: 124px; }
+    .w-money { width: 96px; }
+    .w-costprice { width: 105px; }
+    .w-cost { width: 100px; }
+    .w-pl { width: 99px; }
+    .w-percent { width: 102px; }
+
+    @media (max-width: 900px) {
+      .account-bar {
+        grid-template-columns: auto 90px auto minmax(120px, 1fr);
+      }
+
+      .account-bar .label:nth-of-type(n+3),
+      .account-bar .field:nth-of-type(n+3) {
+        display: none;
+      }
+
+      .tabs,
+      .footer {
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="terminal">
+    <section class="account-bar">
+      <span class="label">Account:</span>
+      <input class="field" data-key="account" value="AT39791">
+      <span class="label">Acc Name:</span>
+      <input class="field" data-key="accName" value="NGÔ TRÂM ANH">
+      <span class="label">MKT ID:</span>
+      <input class="field" data-key="mktId" value="Z811">
+      <span class="label">MKT Name:</span>
+      <input class="field" style="width: 170px" data-key="mktName" value="Cao Trí Thành">
+      <span></span>
+    </section>
+
+    <nav class="tabs" aria-label="Customer detail tabs">
+      <div class="tab">1. Sổ lệnh</div>
+      <a class="tab" href="portfolio-status-ui.html">2. Trạng thái danh mục</a>
+      <div class="tab">3. Trạng thái tài khoản</div>
+      <div class="tab">4. Thông tin khách hàng</div>
+      <div class="tab">6. Thông tin quyền</div>
+      <div class="tab">7. Thông tin DVTC</div>
+      <a class="tab active" href="profit-loss-ui.html">9. Lãi lỗ đã thực hiện</a>
+      <div></div>
+    </nav>
+
+    <section class="content">
+      <table aria-label="Lai lo da thuc hien">
+        <colgroup>
+          <col class="w-date">
+          <col class="w-code">
+          <col class="w-sellqty">
+          <col class="w-price">
+          <col class="w-fee">
+          <col class="w-money">
+          <col class="w-costprice">
+          <col class="w-cost">
+          <col class="w-pl">
+          <col class="w-percent">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Ngày</th>
+            <th>Mã CK</th>
+            <th class="num">KL bán</th>
+            <th class="num">Giá bán</th>
+            <th class="num">Phí + Thuế bán</th>
+            <th class="num">Tiền bán</th>
+            <th class="num">Giá vốn</th>
+            <th class="num">Giá trị vốn</th>
+            <th class="num">Lãi/lỗ</th>
+            <th class="num">%Lãi/lỗ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="total">
+            <td>TOTAL</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="num">262,581,900</td>
+            <td></td>
+            <td class="num">328,107,600</td>
+            <td class="num loss">-65,525,700</td>
+            <td class="num loss">-19.97%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 14:04:13</td>
+            <td class="symbol">DPM</td>
+            <td class="num">3,000.00</td>
+            <td class="num">23,700</td>
+            <td class="num">177,750</td>
+            <td class="num">70,922,250</td>
+            <td class="num">29,544</td>
+            <td class="num">88,632,000</td>
+            <td class="num loss">-17,709,750</td>
+            <td class="num loss">-19.98%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:39:21</td>
+            <td class="symbol">MSR</td>
+            <td class="num">500.00</td>
+            <td class="num">37,000</td>
+            <td class="num">46,250</td>
+            <td class="num">18,453,750</td>
+            <td class="num">46,053</td>
+            <td class="num">23,026,500</td>
+            <td class="num loss">-4,572,750</td>
+            <td class="num loss">-19.86%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:35:45</td>
+            <td class="symbol">MSR</td>
+            <td class="num">200.00</td>
+            <td class="num">36,900</td>
+            <td class="num">18,450</td>
+            <td class="num">7,361,550</td>
+            <td class="num">46,053</td>
+            <td class="num">9,210,600</td>
+            <td class="num loss">-1,849,050</td>
+            <td class="num loss">-20.08%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:35:45</td>
+            <td class="symbol">MSR</td>
+            <td class="num">100.00</td>
+            <td class="num">36,900</td>
+            <td class="num">9,225</td>
+            <td class="num">3,680,775</td>
+            <td class="num">46,053</td>
+            <td class="num">4,605,300</td>
+            <td class="num loss">-924,525</td>
+            <td class="num loss">-20.08%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:35:45</td>
+            <td class="symbol">MSR</td>
+            <td class="num">100.00</td>
+            <td class="num">36,900</td>
+            <td class="num">9,225</td>
+            <td class="num">3,680,775</td>
+            <td class="num">46,053</td>
+            <td class="num">4,605,300</td>
+            <td class="num loss">-924,525</td>
+            <td class="num loss">-20.08%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:36:13</td>
+            <td class="symbol">MSR</td>
+            <td class="num">200.00</td>
+            <td class="num">37,000</td>
+            <td class="num">18,500</td>
+            <td class="num">7,381,500</td>
+            <td class="num">46,053</td>
+            <td class="num">9,210,600</td>
+            <td class="num loss">-1,829,100</td>
+            <td class="num loss">-19.86%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:36:16</td>
+            <td class="symbol">MSR</td>
+            <td class="num">400.00</td>
+            <td class="num">37,000</td>
+            <td class="num">37,000</td>
+            <td class="num">14,763,000</td>
+            <td class="num">46,053</td>
+            <td class="num">18,421,200</td>
+            <td class="num loss">-3,658,200</td>
+            <td class="num loss">-19.86%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:39:36</td>
+            <td class="symbol">MSR</td>
+            <td class="num">300.00</td>
+            <td class="num">37,000</td>
+            <td class="num">27,750</td>
+            <td class="num">11,072,250</td>
+            <td class="num">46,053</td>
+            <td class="num">13,815,900</td>
+            <td class="num loss">-2,743,650</td>
+            <td class="num loss">-19.86%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:39:59</td>
+            <td class="symbol">MSR</td>
+            <td class="num">200.00</td>
+            <td class="num">37,000</td>
+            <td class="num">18,500</td>
+            <td class="num">7,381,500</td>
+            <td class="num">46,053</td>
+            <td class="num">9,210,600</td>
+            <td class="num loss">-1,829,100</td>
+            <td class="num loss">-19.86%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:48:37</td>
+            <td class="symbol">MSR</td>
+            <td class="num">1,800.00</td>
+            <td class="num">36,900</td>
+            <td class="num">166,050</td>
+            <td class="num">66,253,950</td>
+            <td class="num">46,053</td>
+            <td class="num">82,895,400</td>
+            <td class="num loss">-16,641,450</td>
+            <td class="num loss">-20.08%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:48:37</td>
+            <td class="symbol">MSR</td>
+            <td class="num">200.00</td>
+            <td class="num">36,900</td>
+            <td class="num">18,450</td>
+            <td class="num">7,361,550</td>
+            <td class="num">46,053</td>
+            <td class="num">9,210,600</td>
+            <td class="num loss">-1,849,050</td>
+            <td class="num loss">-20.08%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:48:37</td>
+            <td class="symbol">MSR</td>
+            <td class="num">100.00</td>
+            <td class="num">36,900</td>
+            <td class="num">9,225</td>
+            <td class="num">3,680,775</td>
+            <td class="num">46,053</td>
+            <td class="num">4,605,300</td>
+            <td class="num loss">-924,525</td>
+            <td class="num loss">-20.08%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:48:43</td>
+            <td class="symbol">MSR</td>
+            <td class="num">100.00</td>
+            <td class="num">36,900</td>
+            <td class="num">9,225</td>
+            <td class="num">3,680,775</td>
+            <td class="num">46,053</td>
+            <td class="num">4,605,300</td>
+            <td class="num loss">-924,525</td>
+            <td class="num loss">-20.08%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:50:49</td>
+            <td class="symbol">MSR</td>
+            <td class="num">800.00</td>
+            <td class="num">37,000</td>
+            <td class="num">74,000</td>
+            <td class="num">29,526,000</td>
+            <td class="num">46,053</td>
+            <td class="num">36,842,400</td>
+            <td class="num loss">-7,316,400</td>
+            <td class="num loss">-19.86%</td>
+          </tr>
+          <tr>
+            <td>31/07/2026 13:50:51</td>
+            <td class="symbol">MSR</td>
+            <td class="num">200.00</td>
+            <td class="num">37,000</td>
+            <td class="num">18,500</td>
+            <td class="num">7,381,500</td>
+            <td class="num">46,053</td>
+            <td class="num">9,210,600</td>
+            <td class="num loss">-1,829,100</td>
+            <td class="num loss">-19.86%</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="blank-area"></div>
+    </section>
+
+    <footer class="footer">
+      <span class="note">(*) Kết quả tính toán trong ngày là tạm tính theo mức phí hệ thống phỏng tỏa</span>
+      <button id="btn-reload">Reload</button>
+      <span class="arrow">&#8249;</span>
+      <span class="page-no">1</span>
+      <span class="arrow">&#8250;</span>
+      <span>Mã CK</span>
+      <input class="small-input" id="stock-code" aria-label="Ma CK">
+      <span>Từ ngày</span>
+      <span class="date-field">
+        <input class="date-input" id="from-date" value="01 / 03 / 2026">
+        <button class="calendar" type="button" data-picker="from-picker"><i class="fa-regular fa-calendar"></i></button>
+        <input type="date" class="date-picker" id="from-picker" data-text="from-date">
+      </span>
+      <span>Đến ngày</span>
+      <span class="date-field">
+        <input class="date-input" id="to-date" value="30 / 06 / 2026">
+        <button class="calendar" type="button" data-picker="to-picker"><i class="fa-regular fa-calendar"></i></button>
+        <input type="date" class="date-picker" id="to-picker" data-text="to-date">
+      </span>
+      <button id="btn-search">Tìm kiếm</button>
+      <button id="btn-today">Ngày hiện tại</button>
+      <button id="btn-export">Xuất Excel</button>
+      <span></span>
+    </footer>
+  </main>
+  <script>
+    (function () {
+      var KEY = 'accountInfo';
+      var inputs = Array.prototype.slice.call(document.querySelectorAll('.account-bar input.field'));
+
+      function load() {
+        try {
+          var data = JSON.parse(localStorage.getItem(KEY) || '{}');
+          inputs.forEach(function (input) {
+            var v = data[input.dataset.key];
+            if (v !== undefined) input.value = v;
+          });
+        } catch (e) {}
+      }
+
+      function save() {
+        var data = {};
+        inputs.forEach(function (input) {
+          data[input.dataset.key] = input.value;
+        });
+        localStorage.setItem(KEY, JSON.stringify(data));
+      }
+
+      inputs.forEach(function (input) {
+        input.addEventListener('change', save);
+        input.addEventListener('input', save);
+      });
+
+      load();
+    })();
+
+    (function () {
+      var codeInput = document.getElementById('stock-code');
+      var fromInput = document.getElementById('from-date');
+      var toInput = document.getElementById('to-date');
+      var searchBtn = document.getElementById('btn-search');
+      var todayBtn = document.getElementById('btn-today');
+      var exportBtn = document.getElementById('btn-export');
+      var reloadBtn = document.getElementById('btn-reload');
+      var tbody = document.querySelector('.content table tbody');
+      var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+
+      function parseDate(s) {
+        var m = String(s || '').replace(/\s+/g, '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null;
+      }
+
+      function parseRowDate(td) {
+        var m = td.textContent.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null;
+      }
+
+      function formatDate(d) {
+        function p(n) { return ('0' + n).slice(-2); }
+        return p(d.getDate()) + ' / ' + p(d.getMonth() + 1) + ' / ' + d.getFullYear();
+      }
+
+      function parseNum(s) {
+        return parseFloat(String(s).replace(/,/g, '')) || 0;
+      }
+
+      function fmtNum(n) {
+        var sign = n < 0 ? '-' : '';
+        var s = Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return sign + s;
+      }
+
+      function recomputeTotal() {
+        var totalRow = tbody.querySelector('tr.total');
+        var sumSell = 0;
+        var sumCost = 0;
+        var sumPl = 0;
+        rows.forEach(function (row) {
+          if (row === totalRow || row.style.display === 'none') return;
+          sumSell += parseNum(row.cells[5].textContent);
+          sumCost += parseNum(row.cells[7].textContent);
+          sumPl += parseNum(row.cells[8].textContent);
+        });
+        var pct = sumCost ? (sumPl / sumCost * 100) : 0;
+        var c = totalRow.cells;
+        c[5].textContent = fmtNum(sumSell);
+        c[7].textContent = fmtNum(sumCost);
+        c[8].textContent = fmtNum(sumPl);
+        c[8].className = 'num ' + (sumPl < 0 ? 'loss' : 'profit');
+        c[9].textContent = pct.toFixed(2) + '%';
+        c[9].className = 'num ' + (sumPl < 0 ? 'loss' : 'profit');
+      }
+
+      function filter() {
+        var code = (codeInput.value || '').trim().toUpperCase();
+        var from = parseDate(fromInput.value);
+        var to = parseDate(toInput.value);
+        rows.forEach(function (row) {
+          if (row.classList.contains('total')) {
+            row.style.display = '';
+            return;
+          }
+          var cells = row.cells;
+          var symbol = (cells[1].textContent || '').trim().toUpperCase();
+          var d = parseRowDate(cells[0]);
+          var show = true;
+          if (code && symbol.indexOf(code) === -1) show = false;
+          if (show && from && d && d < from) show = false;
+          if (show && to && d && d > to) show = false;
+          row.style.display = show ? '' : 'none';
+        });
+        recomputeTotal();
+      }
+
+      searchBtn.addEventListener('click', filter);
+
+      function pad(n) { return ('0' + n).slice(-2); }
+
+      Array.prototype.slice.call(document.querySelectorAll('.date-field .calendar')).forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var picker = document.getElementById(btn.dataset.picker);
+          var textInput = document.getElementById(picker.dataset.text);
+          var m = parseDate(textInput.value);
+          if (m) picker.value = m.getFullYear() + '-' + pad(m.getMonth() + 1) + '-' + pad(m.getDate());
+          if (picker.showPicker) picker.showPicker();
+        });
+      });
+
+      Array.prototype.slice.call(document.querySelectorAll('.date-picker')).forEach(function (picker) {
+        picker.addEventListener('change', function () {
+          var textInput = document.getElementById(picker.dataset.text);
+          if (picker.value) {
+            var p = picker.value.split('-');
+            textInput.value = p[2] + ' / ' + p[1] + ' / ' + p[0];
+          }
+          filter();
+        });
+      });
+
+      todayBtn.addEventListener('click', function () {
+        var today = new Date();
+        fromInput.value = formatDate(today);
+        toInput.value = formatDate(today);
+        filter();
+      });
+
+      reloadBtn.addEventListener('click', function () {
+        location.reload();
+      });
+
+      exportBtn.addEventListener('click', function () {
+        var lines = [];
+        var headers = Array.prototype.map.call(
+          document.querySelectorAll('.content table thead th'),
+          function (th) { return '"' + th.textContent.trim().replace(/"/g, '""') + '"'; }
+        );
+        lines.push(headers.join(','));
+        rows.forEach(function (row) {
+          if (row.style.display === 'none') return;
+          var cells = Array.prototype.map.call(row.cells, function (c) {
+            return '"' + c.textContent.trim().replace(/"/g, '""') + '"';
+          });
+          lines.push(cells.join(','));
+        });
+        var blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'lai-lo-da-thuc-hien.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      });
+
+      recomputeTotal();
+    })();
+  </script>
+</body>
+</html>
