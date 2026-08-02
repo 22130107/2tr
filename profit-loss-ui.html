@@ -126,8 +126,18 @@
       width: 1122px;
       color: var(--text);
       font-weight: 400;
-      border-left: 2px solid #000;
-      border-right: 2px solid #000;
+      border-left: 1px solid var(--grid);
+      border-right: 1px solid var(--grid);
+    }
+
+    thead th:first-child,
+    tbody td:first-child {
+      border-left: 1px solid var(--grid);
+    }
+
+    thead th:last-child,
+    tbody td:last-child {
+      border-right: 1px solid var(--grid);
     }
 
     thead th {
