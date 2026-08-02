@@ -41,7 +41,7 @@
     .app {
       height: 100vh;
       display: grid;
-      grid-template-rows: 29px 24px 36px 52px 1fr 45px;
+      grid-template-rows: 29px 24px 36px 52px 1fr 11px 45px;
       background: var(--bg);
     }
 
@@ -181,25 +181,47 @@
 
     .table-shell {
       min-height: 0;
-      overflow: auto;
-      scrollbar-color: #aaa #3b3b3b;
-      scrollbar-width: auto;
-      border-bottom: 1px solid #363636;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      border-bottom: 0;
+      background: var(--bg);
     }
 
     .table-shell::-webkit-scrollbar {
-      height: 15px;
-      width: 15px;
+      display: none;
+      width: 0;
+      height: 0;
     }
 
-    .table-shell::-webkit-scrollbar-track {
-      background: #3b3b3b;
+    .x-scrollbar {
+      width: calc(100% - 113px);
+      height: 11px;
+      justify-self: end;
+      display: flex;
+      align-items: stretch;
+      padding: 0;
+      background: #3f3f3f;
+      border-bottom: 1px solid #2f2f2f;
+      cursor: default;
+      user-select: none;
     }
 
-    .table-shell::-webkit-scrollbar-thumb {
-      background: #aaa;
-      border-radius: 8px;
-      border: 3px solid #3b3b3b;
+    .x-scrollbar-track {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+    }
+
+    .x-scrollbar-thumb {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      min-width: 34px;
+      border-radius: 0;
+      background: #b7b7bd;
     }
 
     table {
@@ -538,6 +560,12 @@
       </table>
     </section>
 
+    <div class="x-scrollbar" aria-hidden="true">
+      <div class="x-scrollbar-track">
+        <div class="x-scrollbar-thumb"></div>
+      </div>
+    </div>
+
     <footer class="footer">
       <button>Reload</button>
       <span class="arrow">&#8249;</span>
@@ -561,6 +589,63 @@
           if (v !== undefined) field.textContent = v;
         });
       } catch (e) {}
+    })();
+
+    (function () {
+      var shell = document.querySelector('.table-shell');
+      var bar = document.querySelector('.x-scrollbar');
+      var track = document.querySelector('.x-scrollbar-track');
+      var thumb = document.querySelector('.x-scrollbar-thumb');
+      var dragging = false;
+      var startX = 0;
+      var startLeft = 0;
+
+      function metrics() {
+        var maxScroll = Math.max(0, shell.scrollWidth - shell.clientWidth);
+        var maxThumb = Math.max(0, track.clientWidth - thumb.offsetWidth);
+        return { maxScroll: maxScroll, maxThumb: maxThumb };
+      }
+
+      function updateThumb() {
+        var ratio = shell.clientWidth / shell.scrollWidth;
+        var width = Math.max(32, Math.round(track.clientWidth * Math.min(1, ratio)));
+        thumb.style.width = width + 'px';
+        var m = metrics();
+        var left = m.maxScroll ? Math.round(shell.scrollLeft / m.maxScroll * m.maxThumb) : 0;
+        thumb.style.left = left + 'px';
+      }
+
+      shell.addEventListener('scroll', updateThumb);
+      window.addEventListener('resize', updateThumb);
+
+      bar.addEventListener('pointerdown', function (event) {
+        if (event.target !== thumb) {
+          var trackRect = track.getBoundingClientRect();
+          var desired = event.clientX - trackRect.left - thumb.offsetWidth / 2;
+          var m = metrics();
+          var nextLeft = Math.max(0, Math.min(m.maxThumb, desired));
+          shell.scrollLeft = m.maxThumb ? nextLeft / m.maxThumb * m.maxScroll : 0;
+        }
+        dragging = true;
+        startX = event.clientX;
+        startLeft = thumb.offsetLeft;
+        bar.setPointerCapture(event.pointerId);
+      });
+
+      bar.addEventListener('pointermove', function (event) {
+        if (!dragging) return;
+        var m = metrics();
+        var left = Math.max(0, Math.min(m.maxThumb, startLeft + event.clientX - startX));
+        shell.scrollLeft = m.maxThumb ? left / m.maxThumb * m.maxScroll : 0;
+      });
+
+      bar.addEventListener('pointerup', function (event) {
+        dragging = false;
+        bar.releasePointerCapture(event.pointerId);
+      });
+
+      shell.scrollLeft = Math.max(0, shell.scrollWidth - shell.clientWidth);
+      updateThumb();
     })();
   </script>
 </body>
