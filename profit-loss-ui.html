@@ -390,31 +390,12 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="customer-header.css">
+  <script defer src="customer-header.js"></script>
 </head>
 <body>
   <main class="terminal">
-    <section class="account-bar">
-      <span class="label">Account:</span>
-      <input class="field" data-key="account" value="AT39791">
-      <span class="label">Acc Name:</span>
-      <input class="field" data-key="accName" value="NGÔ TRÂM ANH">
-      <span class="label">MKT ID:</span>
-      <input class="field" data-key="mktId" value="Z811">
-      <span class="label">MKT Name:</span>
-      <input class="field" style="width: 170px" data-key="mktName" value="Cao Trí Thành">
-      <span></span>
-    </section>
-
-    <nav class="tabs" aria-label="Customer detail tabs">
-      <div class="tab">1. Sổ lệnh</div>
-      <a class="tab" href="portfolio-status-ui.html">2. Trạng thái danh mục</a>
-      <div class="tab">3. Trạng thái tài khoản</div>
-      <div class="tab">4. Thông tin khách hàng</div>
-      <div class="tab">6. Thông tin quyền</div>
-      <div class="tab">7. Thông tin DVTC</div>
-      <a class="tab active" href="profit-loss-ui.html">9. Lãi lỗ đã thực hiện</a>
-      <div></div>
-    </nav>
+    <div data-customer-header data-active-tab="profitLoss" data-field-mode="input"></div>
 
     <section class="content">
       <table aria-label="Lai lo da thuc hien">

@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trạng thái tài khoản</title>
+  <style>
+    :root {
+      --app-bg: #242525;
+      --top: #8f240d;
+      --tab: #3f3f3f;
+      --active: #005bea;
+      --cell-dark: #101010;
+      --cell-mid: #262626;
+      --grid: #464646;
+      --text: #fff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      background: var(--app-bg);
+      color: var(--text);
+      font-family: Roboto, Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0;
+      overflow: hidden;
+    }
+
+    .terminal {
+      min-width: 1280px;
+      min-height: 238px;
+      background: var(--app-bg);
+    }
+
+    .account-bar {
+      height: 33px;
+      display: grid;
+      grid-template-columns: auto 90px auto 200px auto 82px auto 160px 1fr;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 7px;
+      background: var(--top);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .label {
+      font-size: 11px;
+      color: #fff;
+    }
+
+    .field {
+      height: 22px;
+      display: flex;
+      align-items: center;
+      padding: 0 7px;
+      background: #151515;
+      border: 1px solid #888;
+      color: #fff;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tabs {
+      height: 22px;
+      display: grid;
+      grid-template-columns: 96px 177px 177px 185px 164px 150px 188px 1fr;
+      background: var(--tab);
+      overflow: hidden;
+    }
+
+    .tab {
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      background: var(--active);
+    }
+
+    table {
+      width: 100%;
+      min-width: 1280px;
+      border-collapse: collapse;
+      table-layout: fixed;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th,
+    td {
+      height: 20px;
+      padding: 0 6px;
+      border-right: 1px solid var(--grid);
+      border-bottom: 1px solid #3b3b3b;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    th {
+      background: var(--cell-mid);
+      font-size: 12px;
+      font-weight: 400;
+      text-align: center;
+    }
+
+    td {
+      background: var(--cell-dark);
+      font-size: 12px;
+      font-weight: 650;
+      text-align: right;
+    }
+
+    .status-table {
+      border-left: 1px solid var(--grid);
+      border-top: 1px solid #303030;
+    }
+
+    .status-table .shade th,
+    .status-table .shade td {
+      background: var(--cell-mid);
+    }
+
+    .status-table .cash-limit-row th {
+      height: 19px;
+      background: #232323;
+      border-bottom-color: #414141;
+    }
+
+    .status-table .cash-limit-row .blank {
+      background: #0b0b0b;
+    }
+
+    .status-table .blank {
+      background: var(--cell-dark);
+      color: transparent;
+    }
+
+    .trade-title th {
+      height: 26px;
+      background: var(--cell-mid);
+      font-weight: 400;
+      text-align: center;
+    }
+
+    .trade-title .trade-caption {
+      text-align: left;
+      padding-left: clamp(30px, 3.2vw, 62px);
+    }
+
+    .trade-title .empty {
+      background: var(--cell-mid);
+      border-right: 0;
+    }
+
+    .trade-grid th {
+        height: 24px;
+        background: var(--cell-mid);
+        line-height: 14px;
+        white-space: normal;
+    }
+
+    .trade-grid .sub th {
+      height: 25px;
+      white-space: nowrap;
+    }
+
+    .trade-grid .full-head {
+      height: 77px;
+      line-height: 14px;
+      white-space: normal;
+    }
+
+    .trade-grid td {
+      height: 25px;
+      background: var(--cell-dark);
+      font-size: 12px;
+    }
+
+    .status-table td[contenteditable="true"],
+    .trade-grid td[contenteditable="true"] {
+      cursor: text;
+    }
+
+    .status-table td[contenteditable="true"]:focus,
+    .trade-grid td[contenteditable="true"]:focus {
+      outline: 1px solid #4a9eff;
+      outline-offset: -1px;
+      background: #0d1a2e;
+    }
+
+    .num {
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .w-1 { width: 10%; }
+    .w-2 { width: 10%; }
+    .w-3 { width: 10%; }
+    .w-4 { width: 13%; }
+    .w-5 { width: 8%; }
+    .w-6 { width: 10%; }
+    .w-7 { width: 11%; }
+    .w-8 { width: 14%; }
+    .w-9 { width: 7%; }
+    .w-10 { width: 7%; }
+
+    @media (max-width: 900px) {
+      html,
+      body {
+        overflow-x: auto;
+      }
+
+      .account-bar {
+        grid-template-columns: auto 90px auto minmax(120px, 1fr);
+      }
+
+      .account-bar .label:nth-of-type(n+3),
+      .account-bar .field:nth-of-type(n+3) {
+        display: none;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="customer-header.css">
+  <script defer src="customer-header.js"></script>
+</head>
+<body>
+  <main class="terminal">
+    <div data-customer-header data-active-tab="account" data-field-mode="input"></div>
+
+    <table class="status-table" aria-label="Trạng thái tài khoản">
+      <colgroup>
+        <col class="w-1">
+        <col class="w-2">
+        <col class="w-3">
+        <col class="w-4">
+        <col class="w-5">
+        <col class="w-6">
+        <col class="w-7">
+        <col class="w-8">
+        <col class="w-9">
+        <col class="w-10">
+      </colgroup>
+      <tbody>
+        <tr class="shade">
+          <th>Tài sản ròng</th>
+          <th>Số tiền phong tỏa</th>
+          <th>Cổ tức tiền</th>
+          <th>Tiền mặt có thể rút</th>
+          <th>Phí phải trả</th>
+          <th>Sức mua</th>
+          <th>Hạn mức trong ngày</th>
+          <th>HM trong ngày đang sử dụng</th>
+          <th colspan="2">HM trong ngày đã sử dụng</th>
+        </tr>
+        <tr>
+          <td class="num">434,048,363</td>
+          <td></td>
+          <td class="num">1,453,500</td>
+          <td class="num">596,047</td>
+          <td class="num">255</td>
+          <td class="num">54,419,184</td>
+          <td></td>
+          <td></td>
+          <td colspan="2"></td>
+        </tr>
+        <tr class="cash-limit-row">
+          <th class="blank"></th>
+          <th class="blank"></th>
+          <th>Tiền rút chờ duyệt</th>
+          <th>Tiền HM có thể rút</th>
+          <th>Hạn mức tài khoản</th>
+          <th class="blank"></th>
+          <th>Gify nhận</th>
+          <th>Gify tặng</th>
+          <th colspan="2" class="blank"></th>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="num">54,419,184</td>
+          <td class="num">53,865,000</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td colspan="2"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="trade-grid" aria-label="Giá trị giao dịch thanh toán Mua/Bán CK">
+      <colgroup>
+        <col style="width: 10%">
+        <col style="width: 10%">
+        <col style="width: 10%">
+        <col style="width: 10%">
+        <col style="width: 10%">
+        <col style="width: 10%">
+        <col style="width: 10%">
+        <col style="width: 10%">
+        <col style="width: 11%">
+        <col style="width: 9%">
+      </colgroup>
+      <tbody>
+        <tr class="trade-title">
+          <th class="empty" colspan="2"></th>
+          <th class="trade-caption" colspan="4">Giá trị giao dịch thanh toán Mua/Bán CK</th>
+          <th class="full-head" rowspan="3">Tiền bán không<br>được ứng</th>
+          <th class="full-head" rowspan="3">Tiền đã ứng<br>trước</th>
+          <th class="full-head" rowspan="3">Tiền có thể ứng<br>trước</th>
+          <th class="full-head" rowspan="3">Giá trị MM<br>liên kết</th>
+        </tr>
+        <tr>
+          <th rowspan="2">Tiền chờ về FS</th>
+          <th>T1</th>
+          <th colspan="2">T0</th>
+          <th rowspan="2">Mua CK<br>chưa khớp</th>
+          <th rowspan="2">Bán CK<br>chưa khớp</th>
+        </tr>
+        <tr class="sub">
+          <th>Tiền bán CK</th>
+          <th>Tiền mua CK</th>
+          <th>Tiền bán CK</th>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="num">53,865,000</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="num">53,865,000</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+  <script>
+    (function () {
+      var KEY = 'accountStatusCells';
+      var tables = Array.prototype.slice.call(document.querySelectorAll('.status-table, .trade-grid'));
+
+      function getEditableCells() {
+        return Array.prototype.slice.call(document.querySelectorAll('.status-table td, .trade-grid td'));
+      }
+
+      function save() {
+        var data = tables.map(function (table) {
+          return Array.prototype.slice.call(table.tBodies[0].rows).map(function (row) {
+            return Array.prototype.slice.call(row.cells).map(function (cell) {
+              return cell.textContent;
+            });
+          });
+        });
+
+        try {
+          localStorage.setItem(KEY, JSON.stringify(data));
+        } catch (e) {}
+      }
+
+      function load() {
+        var data = null;
+        try {
+          data = JSON.parse(localStorage.getItem(KEY) || 'null');
+        } catch (e) {}
+
+        if (!Array.isArray(data)) return;
+
+        tables.forEach(function (table, tableIndex) {
+          var tableData = data[tableIndex];
+          if (!Array.isArray(tableData)) return;
+
+          Array.prototype.slice.call(table.tBodies[0].rows).forEach(function (row, rowIndex) {
+            var rowData = tableData[rowIndex];
+            if (!Array.isArray(rowData)) return;
+
+            Array.prototype.slice.call(row.cells).forEach(function (cell, cellIndex) {
+              if (cell.tagName !== 'TD') return;
+              if (rowData[cellIndex] !== undefined) cell.textContent = rowData[cellIndex];
+            });
+          });
+        });
+      }
+
+      function bind() {
+        getEditableCells().forEach(function (cell) {
+          cell.contentEditable = 'true';
+          cell.spellcheck = false;
+          cell.addEventListener('input', save);
+          cell.addEventListener('blur', save);
+          cell.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              cell.blur();
+            }
+          });
+        });
+      }
+
+      load();
+      bind();
+    })();
+  </script>
+</body>
+</html>

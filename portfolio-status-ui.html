@@ -392,31 +392,12 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="customer-header.css">
+  <script defer src="customer-header.js"></script>
 </head>
 <body>
   <main class="app">
-    <section class="account-bar">
-      <span class="label">Account:</span>
-      <span class="field" data-key="account">AT39791</span>
-      <span class="label">Acc Name:</span>
-      <span class="field" data-key="accName">NGÔ TRÂM ANH</span>
-      <span class="label">MKT ID:</span>
-      <span class="field" data-key="mktId">Z811</span>
-      <span class="label">MKT Name:</span>
-      <span class="field" style="width: 170px" data-key="mktName">Cao Trí Thành</span>
-      <span></span>
-    </section>
-
-    <nav class="tabs">
-      <div class="tab">1. Sổ lệnh</div>
-      <a class="tab active" href="portfolio-status-ui.html">2. Trạng thái danh mục</a>
-      <div class="tab">3. Trạng thái tài khoản</div>
-      <div class="tab">4. Thông tin khách hàng</div>
-      <div class="tab">6. Thông tin quyền</div>
-      <div class="tab">7. Thông tin DVTC</div>
-      <a class="tab" href="profit-loss-ui.html">9. Lãi lỗ đã thực hiện</a>
-      <div></div>
-    </nav>
+    <div data-customer-header data-active-tab="portfolio" data-field-mode="input"></div>
 
     <section class="title-bar">
       <span>Trạng thái danh mục cơ sở</span>

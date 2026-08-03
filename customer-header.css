@@ -1,0 +1,81 @@
+.account-bar {
+  height: 33px;
+  display: grid;
+  grid-template-columns: auto 90px auto 200px auto 82px auto 160px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 7px;
+  background: #8f240d;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 400;
+  color: #fff;
+}
+
+.field {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  padding: 0 7px;
+  background: #151515;
+  border: 1px solid #888;
+  color: #fff;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+input.field {
+  display: block;
+  line-height: 20px;
+}
+
+input.field:focus {
+  outline: 1px solid #666;
+}
+
+.tabs {
+  height: 22px;
+  display: grid;
+  grid-template-columns: 96px 177px 177px 185px 164px 150px 188px 1fr;
+  background: #3f3f3f;
+  overflow: hidden;
+}
+
+.tab {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tab.active {
+  background: #005bea;
+}
+
+main.app {
+  grid-template-rows: 33px 22px 36px 52px 1fr 11px 45px;
+}
+
+@media (max-width: 900px) {
+  .account-bar {
+    grid-template-columns: auto 90px auto minmax(120px, 1fr);
+  }
+
+  .account-bar .label:nth-of-type(n+3),
+  .account-bar .field:nth-of-type(n+3) {
+    display: none;
+  }
+}
