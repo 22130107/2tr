@@ -173,7 +173,7 @@
 
     .summary-item strong {
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 550;
     }
 
     .red { color: var(--red); }
@@ -256,7 +256,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       font-variant-numeric: tabular-nums;
-      font-weight: 400;
+      font-weight: 500;
     }
 
     tbody tr:nth-child(odd) td {
@@ -342,6 +342,44 @@
     .w-room { width: 100px; }
     .w-block { width: 100px; }
     .w-qty { width: 70px; }
+
+    .ctx-menu {
+      position: fixed;
+      z-index: 999;
+      display: none;
+      min-width: 130px;
+      background: #2b2b2b;
+      border: 1px solid #555;
+      box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+      padding: 3px 0;
+    }
+
+    .ctx-menu button {
+      display: block;
+      width: 100%;
+      height: 26px;
+      padding: 0 12px;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    .ctx-menu button:hover {
+      background: #0858d5;
+    }
+
+    tbody tr.row-editing td {
+      background: #1a2a3c;
+    }
+
+    tbody tr.row-editing td:focus {
+      outline: 1px solid #4a9eff;
+      background: #0d1a2e;
+    }
 
     @media (max-width: 900px) {
       .account-bar {
@@ -577,6 +615,11 @@
       <span></span>
     </footer>
   </main>
+  <div class="ctx-menu" id="row-menu">
+    <button type="button" data-act="add">Thêm hàng</button>
+    <button type="button" data-act="edit">Sửa hàng</button>
+    <button type="button" data-act="del">Xóa hàng</button>
+  </div>
   <script>
     (function () {
       var KEY = 'accountInfo';
@@ -646,6 +689,142 @@
 
       shell.scrollLeft = Math.max(0, shell.scrollWidth - shell.clientWidth);
       updateThumb();
+    })();
+
+    (function () {
+      var ROWS_KEY = 'portfolioRows';
+      var tbody = document.querySelector('.table-shell table tbody');
+      var ctxMenu = document.getElementById('row-menu');
+      var ctxRow = null;
+      var NUM_COLS = 24;
+
+      /* các index cần class "num" */
+      var numCols = [2,3,4,5,6,7,8,9,10,11,12,13,14,18,19,20,21,22,23];
+
+      function createEmptyRow() {
+        var tr = document.createElement('tr');
+        for (var i = 0; i < NUM_COLS; i++) {
+          var td = document.createElement('td');
+          if (i === 0) td.className = 'code';
+          else if (numCols.indexOf(i) !== -1) td.className = 'num';
+          tr.appendChild(td);
+        }
+        return tr;
+      }
+
+      function setEditable(row, on) {
+        Array.prototype.forEach.call(row.cells, function (cell) {
+          if (on) cell.contentEditable = 'true';
+          else cell.removeAttribute('contenteditable');
+        });
+      }
+
+      function saveRows() {
+        var data = [];
+        Array.prototype.forEach.call(tbody.rows, function (row) {
+          var cells = [];
+          Array.prototype.forEach.call(row.cells, function (c) {
+            cells.push({ t: c.textContent, c: c.className });
+          });
+          data.push(cells);
+        });
+        try { localStorage.setItem(ROWS_KEY, JSON.stringify(data)); } catch (e) {}
+      }
+
+      function loadRows() {
+        var saved = null;
+        try { saved = JSON.parse(localStorage.getItem(ROWS_KEY) || 'null'); } catch (e) {}
+        if (!Array.isArray(saved) || !saved.length) return;
+        /* snapshot trước để tránh live HTMLCollection shift index khi xóa */
+        Array.prototype.slice.call(tbody.rows).forEach(function (row) {
+          row.parentNode.removeChild(row);
+        });
+        saved.forEach(function (cells) {
+          var tr = createEmptyRow();
+          cells.forEach(function (cell, i) {
+            if (i >= NUM_COLS) return;
+            if (typeof cell === 'string') {
+              tr.cells[i].textContent = cell;
+            } else {
+              tr.cells[i].textContent = cell.t !== undefined ? cell.t : '';
+              if (cell.c) tr.cells[i].className = cell.c;
+            }
+          });
+          tbody.appendChild(tr);
+        });
+      }
+
+      function showMenu(clientX, clientY, row) {
+        ctxRow = row;
+        ctxMenu.style.left = '0px';
+        ctxMenu.style.top = '0px';
+        ctxMenu.style.display = 'block';
+        var w = ctxMenu.offsetWidth;
+        var h = ctxMenu.offsetHeight;
+        ctxMenu.style.left = Math.min(clientX, window.innerWidth - w - 4) + 'px';
+        ctxMenu.style.top = Math.min(clientY, window.innerHeight - h - 4) + 'px';
+      }
+
+      function hideMenu() {
+        ctxMenu.style.display = 'none';
+        ctxRow = null;
+      }
+
+      tbody.addEventListener('contextmenu', function (e) {
+        var el = e.target;
+        if (!(el instanceof Element)) el = el.parentNode;
+        var cell = el.closest('td');
+        var row = cell ? cell.parentNode : null;
+        if (!row) return;
+        e.preventDefault();
+        showMenu(e.clientX, e.clientY, row);
+      });
+
+      document.addEventListener('click', function () { hideMenu(); });
+      document.addEventListener('scroll', function () { hideMenu(); }, true);
+
+      Array.prototype.forEach.call(ctxMenu.querySelectorAll('button'), function (btn) {
+        btn.addEventListener('click', function () {
+          var act = btn.dataset.act;
+          var row = ctxRow;
+          if (!row) return;
+          if (act === 'add') {
+            var tr = createEmptyRow();
+            row.parentNode.insertBefore(tr, row.nextSibling);
+            tr.classList.add('row-editing');
+            setEditable(tr, true);
+            tr.cells[0].focus();
+          } else if (act === 'edit') {
+            if (row.classList.contains('row-editing')) {
+              row.classList.remove('row-editing');
+              setEditable(row, false);
+            } else {
+              row.classList.add('row-editing');
+              setEditable(row, true);
+              row.cells[0].focus();
+            }
+          } else if (act === 'del') {
+            row.parentNode.removeChild(row);
+          }
+          saveRows();
+          hideMenu();
+        });
+      });
+
+      tbody.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var cell = e.target;
+        if (cell.tagName !== 'TD') return;
+        var row = cell.parentNode;
+        if (!row.classList.contains('row-editing')) return;
+        e.preventDefault();
+        row.classList.remove('row-editing');
+        setEditable(row, false);
+        saveRows();
+      });
+
+      loadRows();
+      saveRows();
     })();
   </script>
 </body>
