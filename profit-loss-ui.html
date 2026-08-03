@@ -721,19 +721,24 @@
         return sign + s;
       }
 
+      var SELL_FEE_TAX_RATE = 0.0025;
+
       function recomputeTotal() {
         var totalRow = tbody.querySelector('tr.total');
+        var sumFee = 0;
         var sumSell = 0;
         var sumCost = 0;
         var sumPl = 0;
         Array.prototype.forEach.call(tbody.rows, function (row) {
           if (row === totalRow || row.style.display === 'none') return;
+          sumFee += parseNum(row.cells[4].textContent);
           sumSell += parseNum(row.cells[5].textContent);
           sumCost += parseNum(row.cells[7].textContent);
           sumPl += parseNum(row.cells[8].textContent);
         });
         var pct = sumCost ? (sumPl / sumCost * 100) : 0;
         var c = totalRow.cells;
+        c[4].textContent = fmtNum(sumFee);
         c[5].textContent = fmtNum(sumSell);
         c[7].textContent = fmtNum(sumCost);
         c[8].textContent = fmtNum(sumPl);
@@ -869,6 +874,7 @@
       }
 
       loadRows();
+      recomputeRows();
       recomputeTotal();
       saveRows();
 
@@ -886,17 +892,25 @@
         var c = row.cells;
         var kl = parseNum(c[2].textContent);
         var price = parseNum(c[3].textContent);
-        var fee = parseNum(c[4].textContent);
         var cost = parseNum(c[6].textContent);
-        var sell = kl * price - fee;
+        var grossSell = kl * price;
+        var fee = grossSell * SELL_FEE_TAX_RATE;
+        var sell = grossSell - fee;
         var costVal = kl * cost;
         var pl = sell - costVal;
+        c[4].textContent = fmtNum(fee);
         c[5].textContent = fmtNum(sell);
         c[7].textContent = fmtNum(costVal);
         c[8].textContent = fmtNum(pl);
         c[8].className = 'num ' + (pl < 0 ? 'loss' : 'profit');
         c[9].textContent = (costVal ? (pl / costVal * 100) : 0).toFixed(2) + '%';
         c[9].className = 'num ' + (pl < 0 ? 'loss' : 'profit');
+      }
+
+      function recomputeRows() {
+        Array.prototype.forEach.call(tbody.rows, function (row) {
+          if (!row.classList.contains('total')) recomputeRow(row);
+        });
       }
 
       function createEmptyRow() {
