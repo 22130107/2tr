@@ -151,8 +151,9 @@
 
     table {
       border-collapse: collapse;
-      table-layout: fixed;
+      table-layout: auto;
       width: 1122px;
+      min-width: 1122px;
       color: var(--text);
       font-weight: 400;
       border-left: 1px solid var(--grid);
@@ -205,6 +206,9 @@
 
     tbody tr.row-editing td {
       background: #1a2a3c;
+      max-width: none !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
     }
 
     tbody tr.row-editing td:focus {
@@ -723,6 +727,34 @@
 
       var SELL_FEE_TAX_RATE = 0.0025;
 
+      function fitCell(cell) {
+        var min = cell.dataset.baseMinWidth ? parseFloat(cell.dataset.baseMinWidth) : cell.offsetWidth;
+        if (!cell.dataset.baseMinWidth) cell.dataset.baseMinWidth = min;
+
+        var measure = document.createElement('span');
+        measure.style.position = 'fixed';
+        measure.style.left = '-9999px';
+        measure.style.top = '-9999px';
+        measure.style.whiteSpace = 'pre';
+        measure.style.font = getComputedStyle(cell).font;
+        measure.textContent = cell.textContent || ' ';
+        document.body.appendChild(measure);
+
+        var next = Math.ceil(Math.max(min, measure.offsetWidth + 22));
+        document.body.removeChild(measure);
+        cell.style.width = next + 'px';
+        cell.style.minWidth = next + 'px';
+        cell.style.maxWidth = 'none';
+      }
+
+      function fitRow(row) {
+        Array.prototype.forEach.call(row.cells, fitCell);
+      }
+
+      function fitAllRows() {
+        Array.prototype.forEach.call(tbody.rows, fitRow);
+      }
+
       function recomputeTotal() {
         var totalRow = tbody.querySelector('tr.total');
         var sumFee = 0;
@@ -745,6 +777,7 @@
         c[8].className = 'num ' + (sumPl < 0 ? 'loss' : 'profit');
         c[9].textContent = pct.toFixed(2) + '%';
         c[9].className = 'num ' + (sumPl < 0 ? 'loss' : 'profit');
+        fitRow(totalRow);
       }
 
       function filter() {
@@ -876,6 +909,7 @@
       loadRows();
       recomputeRows();
       recomputeTotal();
+      fitAllRows();
       saveRows();
 
       var ctxMenu = document.getElementById('row-menu');
@@ -883,7 +917,10 @@
 
       function setEditable(row, on) {
         Array.prototype.forEach.call(row.cells, function (cell) {
-          if (on) cell.contentEditable = 'true';
+          if (on) {
+            cell.contentEditable = 'true';
+            fitCell(cell);
+          }
           else cell.removeAttribute('contenteditable');
         });
       }
@@ -905,6 +942,7 @@
         c[8].className = 'num ' + (pl < 0 ? 'loss' : 'profit');
         c[9].textContent = (costVal ? (pl / costVal * 100) : 0).toFixed(2) + '%';
         c[9].className = 'num ' + (pl < 0 ? 'loss' : 'profit');
+        fitRow(row);
       }
 
       function recomputeRows() {
@@ -1002,6 +1040,7 @@
         var row = cell.parentNode;
         if (!row.classList.contains('row-editing') || row.classList.contains('total')) return;
         var idx = Array.prototype.indexOf.call(row.cells, cell);
+        fitCell(cell);
         if (idx === 2 || idx === 3 || idx === 4 || idx === 6) {
           recomputeRow(row);
           recomputeTotal();
