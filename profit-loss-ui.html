@@ -204,6 +204,14 @@
       font-weight: 600;
     }
 
+    tbody tr.total td.loss {
+      color: var(--red);
+    }
+
+    tbody tr.total td.profit {
+      color: var(--green);
+    }
+
     tbody tr.row-editing td {
       background: #1a2a3c;
       max-width: none !important;
@@ -757,20 +765,18 @@
 
       function recomputeTotal() {
         var totalRow = tbody.querySelector('tr.total');
-        var sumFee = 0;
         var sumSell = 0;
         var sumCost = 0;
         var sumPl = 0;
         Array.prototype.forEach.call(tbody.rows, function (row) {
           if (row === totalRow || row.style.display === 'none') return;
-          sumFee += parseNum(row.cells[4].textContent);
           sumSell += parseNum(row.cells[5].textContent);
           sumCost += parseNum(row.cells[7].textContent);
           sumPl += parseNum(row.cells[8].textContent);
         });
         var pct = sumCost ? (sumPl / sumCost * 100) : 0;
         var c = totalRow.cells;
-        c[4].textContent = fmtNum(sumFee);
+        c[4].textContent = '';
         c[5].textContent = fmtNum(sumSell);
         c[7].textContent = fmtNum(sumCost);
         c[8].textContent = fmtNum(sumPl);
