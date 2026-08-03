@@ -718,6 +718,27 @@
         return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null;
       }
 
+      function parseRowDateTime(row) {
+        var text = row.cells[0].textContent.trim();
+        var m = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+        if (!m) return 8640000000000000;
+        return new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)).getTime();
+      }
+
+      function sortRowsByDateTime() {
+        var items = Array.prototype.slice.call(tbody.rows)
+          .filter(function (row) { return !row.classList.contains('total'); })
+          .map(function (row, i) { return { row: row, time: parseRowDateTime(row), index: i }; });
+
+        items.sort(function (a, b) {
+          return a.time === b.time ? a.index - b.index : a.time - b.time;
+        });
+
+        items.forEach(function (item) {
+          tbody.appendChild(item.row);
+        });
+      }
+
       function formatDate(d) {
         function p(n) { return ('0' + n).slice(-2); }
         return p(d.getDate()) + ' / ' + p(d.getMonth() + 1) + ' / ' + d.getFullYear();
@@ -914,6 +935,7 @@
 
       loadRows();
       recomputeRows();
+      sortRowsByDateTime();
       recomputeTotal();
       fitAllRows();
       saveRows();
@@ -1020,6 +1042,7 @@
           } else if (act === 'del') {
             row.parentNode.removeChild(row);
           }
+          sortRowsByDateTime();
           recomputeTotal();
           saveRows();
           hideMenu();
@@ -1036,6 +1059,7 @@
         row.classList.remove('row-editing');
         setEditable(row, false);
         recomputeRow(row);
+        sortRowsByDateTime();
         recomputeTotal();
         saveRows();
       });
