@@ -405,12 +405,12 @@
     </section>
 
     <section class="summary">
-      <div class="summary-item">Giá trị <strong>359,429,400</strong></div>
-      <div class="summary-item">Giá trị TT <strong>296,940,000</strong></div>
-      <div class="summary-item">Lãi Lỗ <strong class="red">-62,489,400</strong></div>
-      <div class="summary-item">% Lãi Lỗ <strong class="red">-17.39%</strong></div>
-      <div class="summary-item">Lãi Lỗ TN</div>
-      <div class="summary-item">% Lãi Lỗ TN <strong class="green">0.00%</strong></div>
+      <div class="summary-item">Giá trị <strong id="sum-giatri">0</strong></div>
+      <div class="summary-item">Giá trị TT <strong id="sum-giatrithitruong">0</strong></div>
+      <div class="summary-item">Lãi Lỗ <strong id="sum-lailo">0</strong></div>
+      <div class="summary-item">% Lãi Lỗ <strong id="sum-percent">0.00%</strong></div>
+      <div class="summary-item">Lãi Lỗ TN <input id="sum-lailotn" class="stock-input" style="width:120px" value="0"></div>
+      <div class="summary-item">% Lãi Lỗ TN <input id="sum-percent-tn" class="stock-input" style="width:100px" value="0.00%"></div>
       <span></span>
     </section>
 
@@ -674,6 +674,7 @@
 
     (function () {
       var ROWS_KEY = 'portfolioRows';
+      var SUMMARY_KEY = 'portfolioSummary';
       var tbody = document.querySelector('.table-shell table tbody');
       var ctxMenu = document.getElementById('row-menu');
       var ctxRow = null;
@@ -710,6 +711,12 @@
           data.push(cells);
         });
         try { localStorage.setItem(ROWS_KEY, JSON.stringify(data)); } catch (e) {}
+        // Save summary inputs
+        var summary = {
+          lailotn: document.getElementById('sum-lailotn')?.value || '0',
+          percenttn: document.getElementById('sum-percent-tn')?.value || '0.00%'
+        };
+        try { localStorage.setItem(SUMMARY_KEY, JSON.stringify(summary)); } catch (e) {}
       }
 
       function loadRows() {
@@ -733,6 +740,15 @@
           });
           tbody.appendChild(tr);
         });
+        // Load summary inputs
+        var summary = null;
+        try { summary = JSON.parse(localStorage.getItem(SUMMARY_KEY) || 'null'); } catch (e) {}
+        if (summary) {
+          var in1 = document.getElementById('sum-lailotn');
+          var in2 = document.getElementById('sum-percent-tn');
+          if (in1 && summary.lailotn !== undefined) in1.value = summary.lailotn;
+          if (in2 && summary.percenttn !== undefined) in2.value = summary.percenttn;
+        }
       }
 
       function showMenu(clientX, clientY, row) {
@@ -806,6 +822,12 @@
 
       loadRows();
       saveRows();
+
+      // Save summary on input change
+      ['sum-lailotn', 'sum-percent-tn'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', saveRows);
+      });
     })();
 
     (function () {
@@ -833,6 +855,152 @@
 
       colorCells();
       new MutationObserver(colorCells).observe(table, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+    })();
+
+    (function () {
+      var tbody = document.querySelector('.table-shell table tbody');
+      var NUM_COLS = 24;
+
+      var SUM_ID = {
+        giatri: 'sum-giatri',
+        giatrithitruong: 'sum-giatrithitruong',
+        lailo: 'sum-lailo',
+        percent: 'sum-percent',
+        lailotn: 'sum-lailotn',
+        percenttn: 'sum-percent-tn'
+      };
+
+      function parseNum(text) {
+        if (!text) return null;
+        var s = String(text).replace(/[\s,]/g, '');
+        if (!s) return null;
+        var n = parseFloat(s);
+        return isNaN(n) ? null : n;
+      }
+
+      function fmtMoney(n) {
+        if (n === null || n === undefined || isNaN(n)) return '';
+        var sign = n < 0 ? '-' : '';
+        var abs = Math.abs(Math.round(n)).toString();
+        var parts = [];
+        while (abs.length > 3) {
+          parts.unshift(abs.slice(-3));
+          abs = abs.slice(0, -3);
+        }
+        parts.unshift(abs);
+        return sign + parts.join(',');
+      }
+
+      function fmtPct(n) {
+        if (n === null || n === undefined || isNaN(n)) return '0.00%';
+        var sign = n < 0 ? '-' : '';
+        var abs = Math.abs(n).toFixed(2);
+        return sign + abs + '%';
+      }
+
+      function calcAll() {
+        var rows = tbody.rows;
+        if (!rows.length) return;
+
+        // First pass: compute derived columns that don't depend on other derived cols
+        var sumValue = 0, sumMv = 0, sumTn = 0;
+        var rowValues = [];
+
+        Array.prototype.forEach.call(rows, function (row) {
+          var qty = parseNum(row.cells[2]?.textContent);    // Tổng
+          var avg = parseNum(row.cells[5]?.textContent);    // Giá TB
+          var mv = parseNum(row.cells[7]?.textContent);     // Giá TT
+          var tnavg = parseNum(row.cells[12]?.textContent); // Giá TBTN
+
+          var value = (qty !== null && avg !== null) ? qty * avg : 0;
+          var marval = (qty !== null && mv !== null) ? qty * mv : 0;
+          var tnval = (qty !== null && tnavg !== null) ? qty * tnavg : 0;
+
+          row.cells[6].textContent = fmtMoney(value);    // Giá Trị
+          row.cells[8].textContent = fmtMoney(marval);   // Giá Trị TT
+          row.cells[13].textContent = fmtMoney(tnval);   // Giá Trị TBTN
+
+          rowValues.push({ value: value, marval: marval, tnval: tnval });
+          sumValue += value;
+          sumMv += marval;
+          sumTn += tnval;
+        });
+
+        // Second pass: derived cols that need sums
+        Array.prototype.forEach.call(rows, function (row, idx) {
+          var rv = rowValues[idx];
+          var value = rv.value, marval = rv.marval, tnval = rv.tnval;
+
+          // Tỷ trọng = marval / sumMv
+          var tytrong = sumMv ? (marval / sumMv * 100) : 0;
+          row.cells[9].textContent = tytrong.toFixed(2) + '%';
+
+          // Lãi Lỗ = value - marval
+          var lailo = marval - value;
+          row.cells[10].textContent = fmtMoney(lailo);
+
+          // % Lãi Lỗ = lailo / value
+          var pct = value ? (lailo / value * 100) : 0;
+          row.cells[11].textContent = pct.toFixed(2) + '%';
+
+          // % Lãi Lỗ TN = (marval - tnval) / tnval
+          var pcttn = tnval ? ((marval - tnval) / tnval * 100) : 0;
+          row.cells[14].textContent = pcttn.toFixed(2) + '%';
+        });
+
+// Update summary
+        var totalLaiLo = sumMv - sumValue;
+        var pctTotal = sumValue ? (totalLaiLo / sumValue * 100) : 0;
+        // Lãi Lỗ TN và % Lãi Lỗ TN là input editable, không tự ghi đè
+
+        document.getElementById(SUM_ID.giatri).textContent = fmtMoney(sumValue);
+        document.getElementById(SUM_ID.giatrithitruong).textContent = fmtMoney(sumMv);
+        var elLaiLo = document.getElementById(SUM_ID.lailo);
+        elLaiLo.textContent = fmtMoney(totalLaiLo);
+        elLaiLo.classList.remove('red', 'green');
+        elLaiLo.classList.add(totalLaiLo < 0 ? 'red' : 'green');
+        document.getElementById(SUM_ID.percent).textContent = fmtPct(pctTotal);
+        var elPct = document.getElementById(SUM_ID.percent);
+        elPct.classList.remove('red', 'green');
+        elPct.classList.add(pctTotal < 0 ? 'red' : 'green');
+        // sum-lailotn và sum-percent-tn là <input>, không cập nhật textContent
+      }
+
+      // Initial calc
+      calcAll();
+
+      // Recalc on edits - use MutationObserver on tbody
+      var calcScheduled = false;
+      function scheduleCalc() {
+        if (!calcScheduled) {
+          calcScheduled = true;
+          requestAnimationFrame(function () {
+            calcScheduled = false;
+            calcAll();
+          });
+        }
+      }
+
+      new MutationObserver(function (mutations) {
+        var relevant = false;
+        mutations.forEach(function (m) {
+          if (m.type === 'characterData') {
+            var td = m.target.parentNode;
+            if (td && td.tagName === 'TD') {
+              var idx = Array.prototype.indexOf.call(td.parentNode.cells, td);
+              // Input columns: 2(Tổng), 5(Giá TB), 7(Giá TT), 12(Giá TBTN)
+              if (idx === 2 || idx === 5 || idx === 7 || idx === 12) relevant = true;
+            }
+          } else if (m.type === 'childList') {
+            relevant = true;
+          }
+        });
+        if (relevant) scheduleCalc();
+      }).observe(tbody, {
         childList: true,
         subtree: true,
         characterData: true
