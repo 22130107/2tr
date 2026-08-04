@@ -807,6 +807,37 @@
       loadRows();
       saveRows();
     })();
+
+    (function () {
+      var signCols = [6, 10, 11];
+      var table = document.querySelector('.table-shell table');
+
+      function parseNum(text) {
+        if (!text) return null;
+        var s = String(text).replace(/[\s,]/g, '');
+        if (!s) return null;
+        var n = parseFloat(s);
+        return isNaN(n) ? null : n;
+      }
+
+      function colorCells() {
+        Array.prototype.forEach.call(table.tBodies[0].rows, function (row) {
+          Array.prototype.forEach.call(row.cells, function (cell, i) {
+            cell.classList.remove('red', 'green');
+            if (signCols.indexOf(i) === -1) return;
+            var n = parseNum(cell.textContent);
+            if (n !== null && n !== 0) cell.classList.add(n < 0 ? 'red' : 'green');
+          });
+        });
+      }
+
+      colorCells();
+      new MutationObserver(colorCells).observe(table, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+    })();
   </script>
 </body>
 </html>
