@@ -176,6 +176,15 @@
       font-weight: 550;
     }
 
+    .summary-item strong[contenteditable="true"] {
+      display: inline-block;
+      min-width: 1ch;
+    }
+
+    .summary-item strong[contenteditable="true"]:focus {
+      outline: none;
+    }
+
     .red { color: var(--red); }
     .green { color: var(--green); }
 
@@ -409,8 +418,8 @@
       <div class="summary-item">Giá trị TT <strong id="sum-giatrithitruong">0</strong></div>
       <div class="summary-item">Lãi Lỗ <strong id="sum-lailo">0</strong></div>
       <div class="summary-item">% Lãi Lỗ <strong id="sum-percent">0.00%</strong></div>
-      <div class="summary-item">Lãi Lỗ TN <input id="sum-lailotn" class="stock-input" style="width:120px" value="0"></div>
-      <div class="summary-item">% Lãi Lỗ TN <input id="sum-percent-tn" class="stock-input" style="width:100px" value="0.00%"></div>
+      <div class="summary-item">Lãi Lỗ TN <strong id="sum-lailotn" contenteditable="true"></strong></div>
+      <div class="summary-item">% Lãi Lỗ TN <strong id="sum-percent-tn" class="green" contenteditable="true">0.00%</strong></div>
       <span></span>
     </section>
 
@@ -701,6 +710,15 @@
         });
       }
 
+      function colorSummaryField(el) {
+        if (!el) return;
+        var s = String(el.textContent || '').replace(/[,%\s]/g, '');
+        var n = s ? parseFloat(s) : null;
+        el.classList.remove('red', 'green');
+        if (n === null || isNaN(n)) return;
+        el.classList.add(n < 0 ? 'red' : 'green');
+      }
+
       function saveRows() {
         var data = [];
         Array.prototype.forEach.call(tbody.rows, function (row) {
@@ -711,18 +729,34 @@
           data.push(cells);
         });
         try { localStorage.setItem(ROWS_KEY, JSON.stringify(data)); } catch (e) {}
-        // Save summary inputs
+        colorSummaryField(document.getElementById('sum-lailotn'));
+        colorSummaryField(document.getElementById('sum-percent-tn'));
         var summary = {
-          lailotn: document.getElementById('sum-lailotn')?.value || '0',
-          percenttn: document.getElementById('sum-percent-tn')?.value || '0.00%'
+          lailotn: document.getElementById('sum-lailotn')?.textContent || '',
+          percenttn: document.getElementById('sum-percent-tn')?.textContent || '0.00%'
         };
         try { localStorage.setItem(SUMMARY_KEY, JSON.stringify(summary)); } catch (e) {}
+      }
+
+      function loadSummary() {
+        var summary = null;
+        try { summary = JSON.parse(localStorage.getItem(SUMMARY_KEY) || 'null'); } catch (e) {}
+        if (!summary) return;
+        var in1 = document.getElementById('sum-lailotn');
+        var in2 = document.getElementById('sum-percent-tn');
+        if (in1 && summary.lailotn !== undefined) in1.textContent = summary.lailotn;
+        if (in2 && summary.percenttn !== undefined) in2.textContent = summary.percenttn;
+        colorSummaryField(in1);
+        colorSummaryField(in2);
       }
 
       function loadRows() {
         var saved = null;
         try { saved = JSON.parse(localStorage.getItem(ROWS_KEY) || 'null'); } catch (e) {}
-        if (!Array.isArray(saved) || !saved.length) return;
+        if (!Array.isArray(saved) || !saved.length) {
+          loadSummary();
+          return;
+        }
         /* snapshot trước để tránh live HTMLCollection shift index khi xóa */
         Array.prototype.slice.call(tbody.rows).forEach(function (row) {
           row.parentNode.removeChild(row);
@@ -740,15 +774,7 @@
           });
           tbody.appendChild(tr);
         });
-        // Load summary inputs
-        var summary = null;
-        try { summary = JSON.parse(localStorage.getItem(SUMMARY_KEY) || 'null'); } catch (e) {}
-        if (summary) {
-          var in1 = document.getElementById('sum-lailotn');
-          var in2 = document.getElementById('sum-percent-tn');
-          if (in1 && summary.lailotn !== undefined) in1.value = summary.lailotn;
-          if (in2 && summary.percenttn !== undefined) in2.value = summary.percenttn;
-        }
+        loadSummary();
       }
 
       function showMenu(clientX, clientY, row) {
@@ -823,11 +849,18 @@
       loadRows();
       saveRows();
 
-      // Save summary on input change
       ['sum-lailotn', 'sum-percent-tn'].forEach(function (id) {
         var el = document.getElementById(id);
-        if (el) el.addEventListener('change', saveRows);
+        if (!el) return;
+        el.addEventListener('input', saveRows);
+        el.addEventListener('blur', saveRows);
+        el.addEventListener('keydown', function (e) {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          el.blur();
+        });
       });
+
     })();
 
     (function () {
@@ -955,7 +988,6 @@
 // Update summary
         var totalLaiLo = sumMv - sumValue;
         var pctTotal = sumValue ? (totalLaiLo / sumValue * 100) : 0;
-        // Lãi Lỗ TN và % Lãi Lỗ TN là input editable, không tự ghi đè
 
         document.getElementById(SUM_ID.giatri).textContent = fmtMoney(sumValue);
         document.getElementById(SUM_ID.giatrithitruong).textContent = fmtMoney(sumMv);
@@ -967,7 +999,6 @@
         var elPct = document.getElementById(SUM_ID.percent);
         elPct.classList.remove('red', 'green');
         elPct.classList.add(pctTotal < 0 ? 'red' : 'green');
-        // sum-lailotn và sum-percent-tn là <input>, không cập nhật textContent
       }
 
       // Initial calc
